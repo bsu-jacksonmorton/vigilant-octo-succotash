@@ -17,8 +17,8 @@ function App() {
   const [ socketUrl, setSocketUrl ] = useState("-")
   const [ username, setUsername ] = useState("")
   const [webSocket, setWebSocket] = useState()
-
-
+  const endOfMessagesRef = useRef()
+  
   function handleSendMessage(e){
     e.preventDefault()
     if(!loggedIn){
@@ -72,27 +72,35 @@ function App() {
     webSocket.onopen = e => {
       console.log("connected to " + socketUrl)
       setLoggedIn(true)
+      const joinMessage = {
+        type:'server.join',
+        username
+      }
+      webSocket.send(JSON.stringify(joinMessage))
     }
     webSocket.onclose = e => {
       console.log("disconnected from " + socketUrl)
       setLoggedIn(false)
     }
     webSocket.onmessage = e => {
+      console.log(JSON.parse(e.data))
       setMessages(messages.concat(JSON.parse(e.data)))
     }
   }, [webSocket, messages])
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({behavior:"smooth"})
+  }, [messages])
   return (
     <div className="App">
-      <Container className="p-5">
+      <Container className="p-1">
         <Login username={username} serverAddress={socketUrl} loggedIn={loggedIn} handleLogin={handleLogin} handleLogout={handleLogout}></Login>
-        <Messages messages={messages}></Messages>
+        <Messages messages={messages} endOfMessagesRef={endOfMessagesRef}></Messages>
         {loggedIn && <MessageInput handleMessageUpdate={handleMessageUpdate} handleSendMessage={handleSendMessage} message={message}></MessageInput>}
       </Container>
       
     </div>
   );
 }
-
 const Login = (props) => {
   const { loggedIn, serverAddress, username, handleLogin, handleLogout} = props
   if(!loggedIn){
@@ -120,10 +128,11 @@ const Login = (props) => {
   }
 }
 const Messages = (props) => {
-  const { messages } = props
+  const { messages, endOfMessagesRef } = props
   return(
-    <ListGroup className="mt-5">
-      {messages.map(message => <ListGroupItem>{message.sender}: {message.body}</ListGroupItem>)}
+    <ListGroup className="messages mt-5">
+      {messages.map(message => <ListGroupItem><strong>{message.sender}:</strong> {message.body}</ListGroupItem>)}
+      <ListGroup ref={endOfMessagesRef}></ListGroup>
     </ListGroup>
   )
 }

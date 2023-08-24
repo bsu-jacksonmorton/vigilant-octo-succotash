@@ -1,6 +1,6 @@
 .App {
   text-align: left;
-  padding:100px 250px 0px 250px ;
+  padding:50px 250px 0px 250px ;
 }
 
 .App-logo {
@@ -37,8 +37,9 @@
     transform: rotate(360deg);
   }
 }
-ul {
-  height:300px;
-  overflow:scroll;
-  list-style: none;
+.messages {
+  height:500px;
+  overflow:auto;
+  scrollbar-width: thin;
+  scroll-padding-block-start: 0px;
 }
