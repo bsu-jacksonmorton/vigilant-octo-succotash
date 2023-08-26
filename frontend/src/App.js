@@ -27,7 +27,8 @@ function App() {
     }
     let messageToSend = {
       sender: username,
-      body: message
+      body: message,
+      type: "server.chat"
     }
     setMessage("")
     webSocket.send(JSON.stringify(messageToSend))
@@ -36,6 +37,7 @@ function App() {
     setMessage(e.target.value)
   }
   function handleLogin(e){
+    console.log("in handleLogin() --->")
     e.preventDefault()
     let serverAddr = document.querySelector("#server-address-field").value
     let username = document.querySelector("#username-field").value
@@ -43,7 +45,6 @@ function App() {
       alert("Invalid parameters provided.... try again!");
       return
     }
-    // .... do websocket stuff?
     setSocketUrl(serverAddr)
     setUsername(username)
   }
@@ -66,7 +67,6 @@ function App() {
       setWebSocket(new WebSocket(socketUrl))
     }
   }, [socketUrl])
-
   useEffect(() => {
     if(!webSocket) return
     webSocket.onopen = e => {
@@ -74,17 +74,21 @@ function App() {
       setLoggedIn(true)
       const joinMessage = {
         type:'server.join',
-        username
+        sender: username,
+        body: username
       }
       webSocket.send(JSON.stringify(joinMessage))
     }
     webSocket.onclose = e => {
       console.log("disconnected from " + socketUrl)
       setLoggedIn(false)
+      setMessages([])
+      setUsername("")
     }
     webSocket.onmessage = e => {
       console.log(JSON.parse(e.data))
-      setMessages(messages.concat(JSON.parse(e.data)))
+      const parsedMessage = JSON.parse(e.data)
+      setMessages(messages.concat(parsedMessage))
     }
   }, [webSocket, messages])
   useEffect(() => {
@@ -129,14 +133,19 @@ const Login = (props) => {
 }
 const Messages = (props) => {
   const { messages, endOfMessagesRef } = props
+  // Map message type field to a variant
+  const messageColors = {
+    "server.info": "info",
+    "server.error": "danger",
+    "server.warning": "warning"
+  }
   return(
     <ListGroup className="messages mt-5">
-      {messages.map(message => <ListGroupItem><strong>{message.sender}:</strong> {message.body}</ListGroupItem>)}
+      {messages.map(message => <ListGroupItem variant={messageColors[message.type]}><strong>{message.sender}:</strong> {message.body}</ListGroupItem>)}
       <ListGroup ref={endOfMessagesRef}></ListGroup>
     </ListGroup>
   )
 }
-
 const MessageInput = (props) => {
   const { handleMessageUpdate, handleSendMessage, message} = props
   return(
