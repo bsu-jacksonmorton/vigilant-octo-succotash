@@ -98,7 +98,7 @@ function App() {
     <div className="App">
       <Container className="p-1">
         <Login username={username} serverAddress={socketUrl} loggedIn={loggedIn} handleLogin={handleLogin} handleLogout={handleLogout}></Login>
-        <Messages messages={messages} endOfMessagesRef={endOfMessagesRef}></Messages>
+        <Messages username={username} messages={messages} endOfMessagesRef={endOfMessagesRef}></Messages>
         {loggedIn && <MessageInput handleMessageUpdate={handleMessageUpdate} handleSendMessage={handleSendMessage} message={message}></MessageInput>}
       </Container>
       
@@ -132,7 +132,7 @@ const Login = (props) => {
   }
 }
 const Messages = (props) => {
-  const { messages, endOfMessagesRef } = props
+  const { username, messages, endOfMessagesRef } = props
   // Map message type field to a variant
   const messageColors = {
     "server.info": "info",
@@ -141,7 +141,7 @@ const Messages = (props) => {
   }
   return(
     <ListGroup className="messages mt-5">
-      {messages.map(message => <ListGroupItem variant={messageColors[message.type]}><strong>{message.sender}:</strong> {message.body}</ListGroupItem>)}
+      {messages.map(message => <ListGroupItem className={message.type === "server.chat" && "message"} variant={message.body.indexOf("@" + username) > - 1 ? "success" : messageColors[message.type]}><strong>{message.sender}:</strong> {message.body}</ListGroupItem>)}
       <ListGroup ref={endOfMessagesRef}></ListGroup>
     </ListGroup>
   )
