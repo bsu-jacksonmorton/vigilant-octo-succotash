@@ -13,6 +13,7 @@ import ListGroupItem from 'react-bootstrap/esm/ListGroupItem';
 function App() {
   const [ messages, setMessages ] = useState([])
   const [ message, setMessage ] = useState("")
+  const [ lastMessage, setLastMessage ] = useState("")
   const [ loggedIn, setLoggedIn ] = useState(false)
   const [ socketUrl, setSocketUrl ] = useState("-")
   const [ username, setUsername ] = useState("")
@@ -68,6 +69,11 @@ function App() {
     }
   }, [socketUrl])
   useEffect(() => {
+    if(lastMessage.length){
+      setMessages(messages.concat(lastMessage))
+    }
+  }, [lastMessage])
+  useEffect(() => {
     if(!webSocket) return
     webSocket.onopen = e => {
       console.log("connected to " + socketUrl)
@@ -81,16 +87,16 @@ function App() {
     }
     webSocket.onclose = e => {
       console.log("disconnected from " + socketUrl)
+      setWebSocket(false)
       setLoggedIn(false)
-      setMessages([])
-      setUsername("")
     }
     webSocket.onmessage = e => {
       console.log(JSON.parse(e.data))
       const parsedMessage = JSON.parse(e.data)
-      setMessages(messages.concat(parsedMessage))
+      setLastMessage(parsedMessage)
     }
-  }, [webSocket, messages])
+  }, [webSocket])
+
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({behavior:"smooth"})
   }, [messages])
