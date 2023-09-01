@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -181,10 +183,22 @@ func setupRoutes() {
 	})
 	http.HandleFunc("/ws", receive)
 }
+func printUsage() {
+	fmt.Println("go run prog <port number>")
+}
 func main() {
-	fmt.Println("Server has started on port 5005!")
+	port := 5005
+	if len(os.Args) > 1 {
+		num, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			printUsage()
+			os.Exit(1)
+		}
+		port = num
+	}
+	fmt.Printf("Server has started on port %d!\n", port)
 	setupRoutes()
-	go http.ListenAndServe(":5005", nil)
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	shutdown.Add(handleShutdown)
 	shutdown.Listen()
 }
